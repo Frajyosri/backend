@@ -119,9 +119,8 @@ app.get("/auth/comercant/login",async(req,res)=>{
     try {
         const   emailExiste= await prisma.commercant.findUnique({where:{email:email}})
         if(emailExiste){
-            const Passexiste=await prisma.commercant.findUnique({where:{mdp:Cpassword}})
-            const isEqual=bcrypt.compareSync(emailExiste.mdp,Passexiste.mdp);
-            console.log(isEqual,Passexiste.mdp,emailExiste.mdp)
+            const isEqual=bcrypt.compareSync(emailExiste.mdp,Cpassword);
+            console.log(isEqual,Cpassword,emailExiste.mdp)
             if(isEqual){
                 res.status(200).send({"msg":"welcome there  "})
             }else{
