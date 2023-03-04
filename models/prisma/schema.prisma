@@ -1,0 +1,120 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  UserName String @id 
+  Password String @unique
+  image String 
+}
+
+model commercant {
+  Id Int  @id @default(autoincrement())
+  Nom String 
+  prenom String
+  email String @unique
+  phone String 
+  mdp String @unique
+  benificier Int? @default(10)
+  montant_actuelle Float? @default(0)
+  historique historique[]
+  score Com_objective[]
+  commande commande[]
+  client client[]
+}
+
+model historique{
+  Id Int @default(autoincrement()) @id
+  Date DateTime 
+  montant Float
+  ComId Int?
+  commercant commercant? @relation(fields: [ComId],references: [Id])
+}
+
+model objectif{
+  Id Int @default(autoincrement()) @id 
+  Titel String 
+  Description String
+  score Com_objective[]
+}
+
+model Com_objective{
+  Idobj Int @unique
+  objective objectif @relation(fields: [Idobj],references: [Id])
+   ComId Int @unique
+  commercant commercant @relation(fields: [ComId],references: [Id])
+  Score Int 
+  @@id([Idobj,ComId])
+}
+
+model commande{
+  code String @id
+  Date DateTime
+  qte_prod Int
+  etat String
+  Adress Json
+  ComId Int ?
+  commercant commercant? @relation(fields: [ComId],references: [Id])
+  Idproduit  Int?
+  produit produit? @relation(fields: [Idproduit],references: [id])
+  CliId Int?
+  Client client? @relation(fields: [CliId],references: [id])
+  idliv Int?
+  livreur livreur? @relation(fields: [idliv],references: [id])
+  facture facture?
+}
+
+model facture{
+  id Int @default(autoincrement()) @id
+  date DateTime
+  montant Float
+  code_cmd String @unique
+  commande commande @relation(fields: [code_cmd],references: [code])
+
+}
+
+model produit{
+  id Int @default(autoincrement()) @id
+  nom String
+  description String
+  prix Float
+  color String
+  commande commande[]
+  idcategory Int 
+  category Category @relation(fields: [idcategory],references: [id])
+}
+
+model Category{
+  id Int @default(autoincrement()) @id
+  category String 
+  produit produit[]
+}
+
+model client {
+  id Int @default(autoincrement()) @id
+  nom String
+  prenom String 
+  email String @unique
+  phone String
+  mdp String @unique
+  commande commande []
+  idCom Int
+  commercant commercant? @relation(fields: [idCom],references: [Id])
+
+}
+
+model livreur {
+  id Int @default(autoincrement())@id 
+  nom String
+  prenom String 
+  email String @unique
+  phone String
+  mdp String @unique
+  commande commande  []
+}
