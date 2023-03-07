@@ -2,11 +2,9 @@ import  express from "express";
 import  cors from "cors";
 import  bodyparser from "body-parser";
 import twilio  from "twilio";
-import { PrismaClient } from "@prisma/client";
-import {db} from "./db.configue.js "
+import router from "./routers/Auth.router.js";
 import bcrypt from "bcrypt"
 
-const prisma=new PrismaClient();
 const client=twilio(process.env.ACOUNT_UD,process.env.AUTH_TOKEN)
 const app=express()
 const port=process.env.PORT||8000
@@ -16,7 +14,8 @@ app.use(express.json());
 app.use(cors())
 app.use(bodyparser.urlencoded({extended:true}))
           //definir les Auth routes  
-
+app.use("/api/auth",router)
+          /*
 //client sign in 
 app.get("/auth/client/login",async(req,res)=>{
     const mdp=req.body.mdp;
@@ -24,9 +23,8 @@ app.get("/auth/client/login",async(req,res)=>{
     try {
     const  clientexiste= await prisma.client.findUnique({where:{email:email}})
             if(clientexiste){
-            const Passexiste=await prisma.commercant.findUnique({where:{mdp:mdp}})
-            const isEqual=bcrypt.compareSync(clientexiste.mdp,Passexiste.mdp);
-            console.log(isEqual,Passexiste.mdp,clientexiste.mdp)
+            const isEqual=clientexiste.mdp===mdp;
+            console.log(isEqual,mdp,clientexiste.mdp)
             if(isEqual){
                 res.status(200).send({"msg":"welcome there  "})
             }else{
@@ -68,13 +66,12 @@ app.post("/auth/client/register",async(req,res)=>{
 //admin sign in 
 app.get("/auth/admin/login",async(req,res)=>{
     const email=req.body.UserName;
-    const Apassword=req.body.Password;
+    const Password=req.body.Password;
     try {
-         const  clientexiste= await prisma.admin.findUnique({where:{UserName:email}})
-            if(clientexiste){
-                const Passexiste=await prisma.admin.findUnique({where:{Password:Apassword}})
-                const isEqual=bcrypt.compareSync(clientexiste.Password,Passexiste.Password);
-                console.log(isEqual,Passexiste.Password,clientexiste.Password)
+         const  Adminexiste= await prisma.admin.findUnique({where:{UserName:email}})
+            if(Adminexiste){
+                const isEqual=Adminexiste.Password===Password;
+                console.log(isEqual)
                 if(isEqual){
                     res.status(200).send({"msg":"welcome there  "})
                 }else{
@@ -115,12 +112,12 @@ app.put("/admin/reset",(req,res)=>{
 //commercant sign in 
 app.get("/auth/comercant/login",async(req,res)=>{
     const email=req.body.email;
-    const Cpassword=req.body.mdp;
+    const mdp=req.body.mdp;
     try {
         const   emailExiste= await prisma.commercant.findUnique({where:{email:email}})
         if(emailExiste){
-            const isEqual=bcrypt.compareSync(emailExiste.mdp,Cpassword);
-            console.log(isEqual,Cpassword,emailExiste.mdp)
+            const isEqual=emailExiste.mdp===mdp
+            console.log(isEqual,mdp,emailExiste.mdp)
             if(isEqual){
                 res.status(200).send({"msg":"welcome there  "})
             }else{
@@ -137,16 +134,17 @@ app.get("/auth/comercant/login",async(req,res)=>{
 })
 //commercant register 
 app.post("/auth/comercant/register",async(req,res)=>{
-        const {nom,prenom,email,mdp,phone}=req.body;
+        const {Nom,prenom,email,mdp,phone}=req.body;
         const addcom ="insert into commercant(nom,prenom,email,mdp,phone) value(?,?,?,?,?)";
-        const salt=bcrypt.genSaltSync(10);
-        const hach=bcrypt.hashSync(mdp,salt)
+       /* const salt=bcrypt.genSaltSync(10);
+        const hach=bcrypt.hashSync(mdp,salt)*/
+        /*
         try {
             const clientexiste=await prisma.commercant.count({where:{email:email}})
         if(clientexiste>0){
             res.status(401).send("commercant deja existe ")
         }else{
-         db.query(addcom,[nom,prenom,email,hach,phone],(err,reslt)=>{
+         db.query(addcom,[Nom,prenom,email,mdp,phone],(err,reslt)=>{
             if(reslt){
                 res.status(200).send({"msg":"commercant added with sucsses "})
                }else{
@@ -238,7 +236,7 @@ app.get("/auth/phone/verify",(req,res)=>{
         res.status(200).send(data)
     }) 
 })
-
+*/
 //demarage de serveur 
 app.listen(port,()=>{
     console.log(`1 2 3  Run ` )
