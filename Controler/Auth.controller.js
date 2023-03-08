@@ -103,7 +103,7 @@ export const Admin_login=async(req,res)=>{
                 const isEqual=Adminexiste.Password===Password;
                 console.log(isEqual)
                 if(isEqual){
-                    res.status(200).send({"msg":"welcome there  "})
+                    res.status(200).send({"msg":"welcome there  ",Adminexiste})
                 }else{
                     res.status(400).send({"msg":"invalide mail or password"})
                 }

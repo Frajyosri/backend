@@ -3,6 +3,7 @@ import  cors from "cors";
 import  bodyparser from "body-parser";
 import twilio  from "twilio";
 import router from "./routers/Auth.router.js";
+import Comercantrouter from "./routers/Commercant.router.js"
 import bcrypt from "bcrypt"
 
 const client=twilio(process.env.ACOUNT_UD,process.env.AUTH_TOKEN)
@@ -14,7 +15,8 @@ app.use(express.json());
 app.use(cors())
 app.use(bodyparser.urlencoded({extended:true}))
           //definir les Auth routes  
-app.use("/api/auth",router)
+app.use("/api",router)
+app.use("/api",Comercantrouter)
           /*
 //client sign in 
 app.get("/auth/client/login",async(req,res)=>{

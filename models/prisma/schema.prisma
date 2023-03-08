@@ -10,8 +10,8 @@ datasource db {
 
 model Admin {
   UserName String @id 
-  Password String @unique
-  image String 
+  Password String 
+  image String?
 }
 
 model commercant {
@@ -20,8 +20,10 @@ model commercant {
   prenom String
   email String @unique
   phone String 
-  mdp String @unique
+  mdp String 
+  image String? @default("https://th.bing.com/th/id/OIP.DcifgGr8xOF70qzHb0tmqQAAAA?pid=ImgDet&rs=1")
   benificier Int? @default(10)
+  Paye Boolean @default(false)
   montant_actuelle Float? @default(0)
   historique historique[]
   score Com_objective[]
@@ -31,7 +33,7 @@ model commercant {
 
 model historique{
   Id Int @default(autoincrement()) @id
-  Date DateTime 
+  Date DateTime  @default(now())
   montant Float
   ComId Int?
   commercant commercant? @relation(fields: [ComId],references: [Id])
@@ -41,6 +43,7 @@ model objectif{
   Id Int @default(autoincrement()) @id 
   Titel String 
   Description String
+  nbr_defi Int
   score Com_objective[]
 }
 
@@ -55,10 +58,11 @@ model Com_objective{
 
 model commande{
   code String @id
-  Date DateTime
+  Date DateTime @default(now())
   qte_prod Int
-  etat String
-  Adress Json
+  etat String @default("Confirmer")
+  Adress String
+  ispayed Boolean @default(false)
   ComId Int ?
   commercant commercant? @relation(fields: [ComId],references: [Id])
   Idproduit  Int?
@@ -72,7 +76,7 @@ model commande{
 
 model facture{
   id Int @default(autoincrement()) @id
-  date DateTime
+  date DateTime @default(now())
   montant Float
   code_cmd String @unique
   commande commande @relation(fields: [code_cmd],references: [code])
@@ -85,6 +89,9 @@ model produit{
   description String
   prix Float
   color String
+  pht Float 
+  pat Float
+  remise Int?
   commande commande[]
   idcategory Int 
   category Category @relation(fields: [idcategory],references: [id])
@@ -102,8 +109,10 @@ model client {
   prenom String 
   email String @unique
   phone String
-  mdp String @unique
+  image String? @default("https://th.bing.com/th/id/OIP.DcifgGr8xOF70qzHb0tmqQAAAA?pid=ImgDet&rs=1")
+  mdp String 
   commande commande []
+  Rapport Rapport[]
   idCom Int
   commercant commercant? @relation(fields: [idCom],references: [Id])
 
@@ -115,6 +124,16 @@ model livreur {
   prenom String 
   email String @unique
   phone String
+  image String?
   mdp String @unique
+  isdispo Boolean @default(true)
   commande commande  []
+}
+
+model Rapport{
+  id Int @default(autoincrement()) @id
+  Content String 
+   CliId Int?
+  Client client? @relation(fields: [CliId],references: [id])
+  
 }

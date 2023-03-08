@@ -12,18 +12,19 @@ import{Client_sign_in,
     from "../Controler/Auth.controller.js "
 
 //client sign in 
-router.get("/client/login",Client_sign_in)
+router.post("/client/login",Client_sign_in)
 
 router.post("/client/register",Client_register)
 
-router.get("/admin/login",Admin_login)
+router.post("/admin/login",Admin_login)
 
 router.put("/admin/reset",Admin_Rest)
 
-router.get("/comercant/login",commercant_login)
+router.post("/comercant/login",commercant_login)
 
 router.post("/comercant/register",commercant_register)
-router.get("/livreur/login",Livreur_login)
+router.post("/livreur/login",Livreur_login)
+
 //livreur register 
 router.post("/livreur/register",Livreur_register)
 
