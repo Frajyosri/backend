@@ -21,6 +21,7 @@ model commercant {
   email String @unique
   phone String 
   mdp String 
+  Adress String
   image String? @default("https://th.bing.com/th/id/OIP.DcifgGr8xOF70qzHb0tmqQAAAA?pid=ImgDet&rs=1")
   benificier Int? @default(10)
   Paye Boolean @default(false)
@@ -58,7 +59,7 @@ model Com_objective{
 
 model commande{
   code String @id
-  Date DateTime @default(now())
+  Date_cmd DateTime @default(now())
   qte_prod Int
   etat String @default("Confirmer")
   Adress String
@@ -89,6 +90,7 @@ model produit{
   description String
   prix Float
   color String
+  image String
   pht Float 
   pat Float
   remise Int?

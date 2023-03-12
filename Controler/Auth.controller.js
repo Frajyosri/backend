@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 const prisma=new PrismaClient();
+import {db} from "../db.configue.js"
 
 //client login 
 export const Client_sign_in=async(req,res)=>{
@@ -26,14 +27,14 @@ export const Client_sign_in=async(req,res)=>{
 export const Client_register=async(req,res)=>{
     const {nom,prenom,email,mdp,phone,idCom}=req.body;
    const inserClient="insert into client(nom,prenom,email,mdp,phone,idCom) value(?,?,?,?,?,?)";
-   const salt=bcrypt.genSaltSync(10);
-    const hach=bcrypt.hashSync(mdp,salt)
+   /*const salt=bcrypt.genSaltSync(10);
+    const hach=bcrypt.hashSync(mdp,salt)*/
     try {
         const clientexiste=await prisma.client.count({where:{email:email}})
         if(clientexiste>0){
             res.status(401).send("client deja existe ")
         }else{
-           db.query(inserClient,[nom,prenom,email,hach,phone,idCom],(err,reselt)=>{
+           db.query(inserClient,[nom,prenom,email,mdp,phone,idCom],(err,reselt)=>{
             if(reselt){
                 return  res.status(200).json({"msg":"user registred "});
               }else{
@@ -121,18 +122,24 @@ export const Admin_Rest=async(req,res)=>{
     const username=req.body.UserName;
     /*const salt=bcrypt.genSaltSync(10);
     const hach=bcrypt.hashSync(newpassword,salt)*/
-    const   Admin= `UPDATE admin SET Password =? WHERE UserName=?`
     try {
-        db.query(Admin,[newpassword,username],(err,reslta)=>{
-            if(reslta){
-                return res.status(200).send({"msg":"mot de passe tbadlet sayer"})
-            }else{
-                return res.status(400).send({"msg":"o93ed zazwa ^_^ "+err})
+     
+        const Admin=await prisma.admin.update({
+            where:{
+                UserName:username
+            },
+            data:{
+               Password:newpassword 
             }
         })
+        if( Admin){
+            return res.status(200).send({"msg":"mot de passe tbadlet sayer"})
+        }else{
+            return res.status(400).send({"msg":"o93ed zazwa ^_^ "})
+        }
    
     } catch (error) {
-        res.status(500).send({"msg":error})
+        res.status(500).send({"msg":"fama haja moch hiya "+error})
     }   
 }
 

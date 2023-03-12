@@ -5,8 +5,14 @@ import {getAllComercantwithCommande,
        getAllComercantwithScore,
        getAllComercantwithhistorique,
        getclient_Commande,
-       ObjectiveById
-} from "../Controler/Commercant.controller.js"
+       ObjectiveById,
+       AddFacture,
+       GetAllFacture,
+       GetFactureById,
+       SearchProduct,
+       Commercant_Update
+} from "../Controler/Commercant.controller.js";
+
 
 //get the client of commercant
 router.get("/commercant/client",getAllComercantwithClient)
@@ -19,5 +25,15 @@ router.get("/commercant/score",getAllComercantwithScore)
 //get the commande of client by id 
 router.get("/client/commande",getclient_Commande)
 //get the objective By id 
-router.get("/commercant/objective",ObjectiveById)
+router.get("/commercant/objective/:id",ObjectiveById)
+//Get All facture 
+router.get("/facture",GetAllFacture)
+//Get Facture By Id 
+router.get("/facture/:id",GetFactureById)
+//Add New Facture 
+router.post("/facture",AddFacture)
+//Search Product 
+router.get("/product/search",SearchProduct)
+//Update the Commercant State 
+router.put("/comercant/update",Commercant_Update)
 export default router;
