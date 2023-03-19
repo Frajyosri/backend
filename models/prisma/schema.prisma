@@ -58,20 +58,22 @@ model Com_objective{
 }
 
 model commande{
-  code String @id
+  id_cmd Int @id
+  code String @unique
   Date_cmd DateTime @default(now())
   qte_prod Int
   etat String @default("Confirmer")
-  Adress String
+  lat Float
+  long Float
   ispayed Boolean @default(false)
   ComId Int ?
-  commercant commercant? @relation(fields: [ComId],references: [Id])
-  Idproduit  Int?
-  produit produit? @relation(fields: [Idproduit],references: [id])
+  commercant commercant? @relation(fields: [ComId],references: [Id],onDelete: Cascade,onUpdate: Cascade)
+  Idproduit  Int
+  produit produit? @relation(fields: [Idproduit],references: [id],onDelete: Cascade,onUpdate: Cascade)
   CliId Int?
-  Client client? @relation(fields: [CliId],references: [id])
+  Client client? @relation(fields: [CliId],references: [id],onDelete: Cascade,onUpdate: Cascade)
   idliv Int?
-  livreur livreur? @relation(fields: [idliv],references: [id])
+  livreur livreur? @relation(fields: [idliv],references: [id],onDelete: Cascade,onUpdate: Cascade)
   facture facture?
 }
 
@@ -79,8 +81,8 @@ model facture{
   id Int @default(autoincrement()) @id
   date DateTime @default(now())
   montant Float
-  code_cmd String @unique
-  commande commande @relation(fields: [code_cmd],references: [code])
+  code_cmd Int @unique
+  commande commande @relation(fields: [code_cmd],references: [id_cmd],onDelete: Cascade,onUpdate: Cascade)
 
 }
 
@@ -96,7 +98,7 @@ model produit{
   remise Int?
   commande commande[]
   idcategory Int 
-  category Category @relation(fields: [idcategory],references: [id])
+  category Category @relation(fields: [idcategory],references: [id],onDelete: Cascade,onUpdate: Cascade)
 }
 
 model Category{
@@ -116,7 +118,7 @@ model client {
   commande commande []
   Rapport Rapport[]
   idCom Int
-  commercant commercant? @relation(fields: [idCom],references: [Id])
+  commercant commercant? @relation(fields: [idCom],references: [Id],onDelete:Cascade,onUpdate: Cascade)
 
 }
 
@@ -127,7 +129,7 @@ model livreur {
   email String @unique
   phone String
   image String?
-  mdp String @unique
+  mdp String 
   isdispo Boolean @default(true)
   commande commande  []
 }
@@ -136,6 +138,6 @@ model Rapport{
   id Int @default(autoincrement()) @id
   Content String 
    CliId Int?
-  Client client? @relation(fields: [CliId],references: [id])
+  Client client? @relation(fields: [CliId],references: [id],onDelete: Cascade,onUpdate: Cascade)
   
 }

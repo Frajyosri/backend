@@ -5,6 +5,7 @@ import twilio  from "twilio";
 import Authrouter from "./routers/Auth.router.js";
 import Commercantrouter from "./routers/Commercant.router.js";
 import Adminrouter from "./routers/Admin.router.js";
+import LivreurRouter from "./routers/Livreur.router.js"
 import bcrypt from "bcrypt"
 
 const client=twilio(process.env.ACOUNT_UD,process.env.AUTH_TOKEN)
@@ -19,7 +20,7 @@ app.use(bodyparser.urlencoded({extended:true}))
 app.use("/api",Authrouter)
 app.use("/api",Commercantrouter)
 app.use("/api",Adminrouter)
-  
+app.use("/api",LivreurRouter)  
 
 
 //phone login 

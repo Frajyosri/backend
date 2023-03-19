@@ -10,7 +10,8 @@ import {getAllComercantwithCommande,
        GetAllFacture,
        GetFactureById,
        SearchProduct,
-       Commercant_Update
+       Commercant_Update,
+       AddCommande
 } from "../Controler/Commercant.controller.js";
 
 
@@ -36,4 +37,6 @@ router.post("/facture",AddFacture)
 router.get("/product/search",SearchProduct)
 //Update the Commercant State 
 router.put("/comercant/update",Commercant_Update)
+//Add Commande 
+router.post("/commande",AddCommande)
 export default router;

@@ -1,6 +1,22 @@
 import { PrismaClient } from "@prisma/client";
 const prisma=new PrismaClient();
 import {db} from "../db.configue.js"
+import multer from "multer";
+
+
+
+//Upload File 
+const mystorage=multer.diskStorage({
+    destination:"../Uploads",
+    filename:(req,file,redirect)=>{
+        let date= Date.now();
+        let f1=date+"."+file.mimetype.split("/")[1];
+        redirect(null,f1)
+        filename=f1;
+    }
+})
+const Upload=multer({storage:mystorage})
+
 
 
 //Get All Commande 
@@ -102,25 +118,20 @@ export const GetStatique=async(req,res)=>{
 }
 //serach product 
 export const SearchProduct=async(req,res)=>{
-    const q=req.query.nom;
-    
-   try {
-    const Product=prisma.produit.findMany({
-        where:{
-            nom:{
-                contains:q
-            }
-        }
-    })
-    if((await Product).length>0){
-        res.status(200).send({"le produit trouver est:": await Product})
-    }else{
-        res.status(404).send({"msg":"Product Not Found "})
+    const { q } = req.query; // Get the search query parameter
+       
+    try {
+     const Product = await prisma.produit.findMany({
+      where: {
+           nom: { contains: q } 
+       
+      },
+    });
+    res.json({Product});
+    } catch (error) {
+      res.status(500).json({"msg":error})  
     }
-    
-   } catch (error) {
-    res.status(500).send({"msg":error})
-   }
+   
    
 }
 //search Commercant 
@@ -183,14 +194,14 @@ export const AddTohistorique=async(req,res)=>{
 }
 // Get Commercant's Historique By Id
 export const CommercantHistorique=async(req,res)=>{
-    const Id=req.body.Id;
+    const Id=req.params.Id;
     try {
         const ComHist=await prisma.commercant.findUnique({
             include:{
                 historique:true
             },
             where:{
-                Id:Id
+                Id:Number( Id)
             }
         })
         if(ComHist){
@@ -363,5 +374,117 @@ export const GetFactureById=async(req,res)=>{
        }
     } catch (error) {
         res.status(500).send({"msg":"Oops"+error})
+    }
+}
+//Delete Product
+export const DeleteProduct=async(req,res)=>{
+    const id=req.params.id;
+    try {
+        const product=await prisma.produit.delete({
+            where:{
+                id:Number(id)
+            }
+        })
+        if(product){
+            res.status(200).send({"msg":"produit  a eté effacer"})
+        }else{
+            res.status(400).json({"msg":"Ooops ! je crois qu'il n'ya pas un produit a ce id  "})
+        }
+    } catch (error) {
+        res.status(500).json({"msg":"Ooops ! "+error})
+    }
+}
+//Get All product 
+export const  GetAllProduct=async(req,res)=>{
+    try {
+        const Product=await prisma.produit.findMany({    
+        })
+        if(Product){
+                res.status(200).json({Product})
+            
+        }else{
+            res.status(400).send({"msg":"Ooops "})
+        }
+    } catch (error) {
+     res.status(500).json({"msg":error})   
+    }
+}
+
+//Get category By Id 
+export const GetCategoryById=async(req,res)=>{
+    const id=req.params.id;
+    try {
+       const Category=await prisma.category.findUnique({
+        where:{
+            id: Number(id) 
+        }
+       }) 
+       if(Category){
+        res.status(200).json(Category)
+       }else{
+        res.status(404).json({"msg":"Ooops ! je crois qu'il n'ya pas un category a ce id  "})
+       }
+    } catch (error) {
+        res.status(500).json({"msg":"Ooops ! "+error})
+    }
+}
+//Get category 
+export const GetCategory=async(req,res)=>{
+    try {
+       const Category=await prisma.category.findMany({
+       }) 
+       if(Category){
+        res.status(200).json(Category)
+       }else{
+        res.status(400).json({"msg":"Ooops ! "})
+       }
+    } catch (error) {
+        res.status(500).json({"msg":"Ooops ! "+error})
+    }
+}
+//Get Product By Id 
+export const GetProductById=async(req,res)=>{
+    const id=req.params.id;
+    try {
+        const GetProdById=await prisma.produit.findUnique({
+            where:{
+                id:Number(id)
+            }
+        })
+        if(GetProdById){
+            res.status(200).json({GetProdById})
+        }else{
+            res.status(404).json({"msg":"Ooops ! n'existe pas "})
+        }
+    } catch (error) {
+        res.status(500).json({"msg":"Ooops ! "+error})
+    }
+}
+export const UpdateProduit =async(req,res)=>{
+    const id=req.params.id;
+    const {nom,description,prix,color,pht,pat,remise}=req.body;
+    try {
+        const UpdateProd=await prisma.produit.update({
+            where:{
+                id:Number(id)
+            },
+            data:{
+                nom:nom,
+                description:description,
+                prix:prix,
+                color:color,
+                pht:pht,
+                pat:pat,
+                remise:remise
+            }
+        })
+        if(UpdateProd){
+            res.status(201).json({"produit a ete Modifier ":UpdateProd})
+        }else{
+            res.status(400).json({"msg":"Ooops ! n'existe pas  ou Requet invalide "})
+        }
+        
+    } catch (error) {
+        res.status(500).json({"msg":"Ooops ! "+error})
     }
 }

@@ -193,3 +193,20 @@ export const Commercant_Update=async(req,res)=>{
     }
    
 }
+//Add Commande 
+export const AddCommande=async(req,res)=>{
+    const {code,qte_prod,lat,long,ComId,Idproduit,CliId}=req.body;
+    try {
+        const Commande="insert into commande (code,qte_prod,lat,long,ComId,Idproduit,CliId)values(?,?,?,?,?,?,?)"
+        db.query(Commande,[code,qte_prod,lat,long,ComId,Idproduit,CliId],(err,Commande)=>{
+          if(Commande){
+            res.status(201).send({"Commande ajouter avec Suscces": Commande})
+        }else{
+            res.status(400).send({"msg":"Ooops"+err})
+        }
+        })
+       
+    } catch (error) {
+        res.status(500).send({"msg":error})
+    }
+}
