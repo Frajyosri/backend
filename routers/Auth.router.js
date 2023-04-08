@@ -28,15 +28,10 @@ const Upload=multer({storage:myStorage})
 
 //client sign in 
 router.post("/client/login",Client_sign_in)
-
 router.post("/client/register",Client_register)
-
 router.post("/admin/login",Admin_login)
-
 router.put("/admin/reset",Admin_Rest)
-
 router.post("/comercant/login",commercant_login)
-
 router.post("/comercant/register",commercant_register)
 router.post("/livreur/login",Livreur_login)
 

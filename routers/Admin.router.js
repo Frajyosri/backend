@@ -1,5 +1,6 @@
 import  express from "express";
-const router=express.Router()
+const router=express.Router();
+import Cloudinary from "../Cloudinary.js";
 import {GetlastCommande,
         GetlastCommercant,
          GetStatique,
@@ -16,16 +17,26 @@ import {GetlastCommande,
          Reclamation,
          Allobjective,
          GetFactureById,
-         GetComercantById,
          DeleteProduct,
          GetAllProduct,
          GetCategory,
          GetCategoryById,
          GetProductById,
-         UpdateProduit
+         UpdateProduit,
+         DeleteObjective,
+         GetAllLivreur,
+         DeleteLivreur,
+         AddCategory,
+         SearchLivreur,
+         CountOfCommande,
+         CountOfCommercant,
+         Somme,
+         getDeffirenceOfMonth,
+         GetAllLivreurByDespo,
+         getCardItem
+         
 } from "../Controler/Admin.controller.js";
 import { PrismaClient } from "@prisma/client";
-import path from "path"
 const prisma=new PrismaClient();
 import multer from "multer";
 import {db} from "../db.configue.js"
@@ -47,6 +58,8 @@ const mystorage=multer.diskStorage({
 router.get("/admin/lastCommande",GetlastCommande)
 //Get last Commercant
 router.get("/admin/lastCommercant",GetlastCommercant)
+//Get All Livreur 
+router.get("/admin/livreur",GetAllLivreur)
 //Get Statique 
 router.get("/admin/stats",GetStatique)
 //Search Product 
@@ -54,41 +67,53 @@ router.get("/admin/search",SearchProduct)
 //Search Commercant 
 router.get("/admin/Csearch",SearchCommercant)
 //Add to historique
-router.post("/admin/historique",AddTohistorique)
+router.post("/admin/historique/:id",AddTohistorique)
 //Get the Commercant Historique 
 router.get("/admin/Chistorique/:id",CommercantHistorique)
 //Update the Commande State 
-router.put("/admin/commande",Update_commande)
+router.put("/admin/commande/:id",Update_commande)
 //Reset the Commercant State 
-router.put("/admin/commercant/reset",Commercant_Reset)
+router.put("/admin/commercant/reset/:id",Commercant_Reset)
 //Get All Commande 
 router.get("/admin/Commande",GetAllCommande)
 //Get All Commercant 
 router.get("/admin/Comercant",GetAllComercant)
 //Delete Commercant 
-router.delete("/admin/comercant",Delete_com)
+router.delete("/admin/comercant/:id",Delete_com)
 //Add Objective 
 router.post("/admin/objective",AddObjective)
 //Get All Client's Reclamation
 router.get("/admin/Reclamation",Reclamation)
 //Get All Objective
 router.get("/admin/AllObjective",Allobjective)
+//delete objective 
+router.delete("/admin/objective/:id",DeleteObjective)
 //Get Facture By Id 
-router.get("/admin/facture",GetFactureById)
-//Get Commercant By Id  
-router.get("/admin/comercantById",GetComercantById)
+router.get("/admin/facture/:id",GetFactureById)
 //add product 
 router.post("/admin/produit",multer({storage:mystorage}).single("image"),async(req,res)=>{
-        const {nom,description,prix,color,pht,pat,remise,idcategory}=req.body
+        const {nom,description,prix,color,pht,image,pat,remise,idcategory}=req.body
         try {
-        const Product="insert into produit (nom,description,prix,color,image,pht,pat,remise,idcategory)values (?,?,?,?,?,?,?,?,?)"
-           db.query(Product,[nom,description,prix,color,filename,pht,pat,remise,idcategory],(err,reslt)=>{
-            if(reslt){
-                res.status(201).json({"msg":"Produit a eté ajouter avec Sucsses "})
+            console.log(image)
+            if(image){
+             const UpoadResponse= await Cloudinary.uploader.upload(image,{
+                    upload_preset:"productUpload"
+                })
+                if(UpoadResponse){
+                    const imageProduct=UpoadResponse.secure_url
+                    const Product="insert into produit (nom,description,prix,color,image,pht,pat,remise,idcategory)values (?,?,?,?,?,?,?,?,?)"
+                    db.query(Product,[nom,description,prix,color,imageProduct,pht,pat,remise,idcategory],(err,reslt)=>{
+                     if(reslt){
+                         res.status(201).json({"msg":"Produit a eté ajouter avec Sucsses "})
+                     }else{
+                         res.status(400).json({"msg":err})
+                     }
+                    })
+                }
             }else{
-                res.status(400).json({"msg":err})
+                res.status(400).json({"msg":"Product Not Uploaded  "})
             }
-           })
+           
         } catch (error) {
             res.status(500).json({"Ooops":error})
 
@@ -102,6 +127,26 @@ router.delete("/admin/product/:id",DeleteProduct)
 router.get("/admin/category/:id",GetCategoryById)
 //get All category 
 router.get("/admin/category",GetCategory)
+//Get Product By Id
 router.get("/admin/produit/:id",GetProductById)
+//Update Product 
 router.put("/admin/produit/:id",UpdateProduit)
+//Delete livreur 
+router.delete("/admin/livreur/:id",DeleteLivreur)
+//Add Category 
+router.post("/admin/category",AddCategory)
+//Search livreur 
+router.get("/admin/Lsearch",SearchLivreur)
+//Get Count of commercant
+router.get("/admin/Countcommercant",CountOfCommercant)
+//Get Count of commande
+router.get("/admin/CountCommande",CountOfCommande)
+//Get Somme of commande
+router.get("/admin/somme",Somme)
+//Get Difference 
+router.get("/admin/diff",getDeffirenceOfMonth)
+//Get livreur By Dispo 
+router.get("/admin/livreurBydispo",GetAllLivreurByDespo)
+//Get CardItem 
+router.get("/admin/cardItem/:id",getCardItem)
 export default router;

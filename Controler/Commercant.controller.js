@@ -1,7 +1,8 @@
 import { PrismaClient } from "@prisma/client";
 const prisma=new PrismaClient();
-import {db} from "../db.configue.js"
-
+import {db} from "../db.configue.js";
+import  moment from "moment";
+import Cloudinary from "../Cloudinary.js";
 
 
 //obtenir les information de commercant et son client 
@@ -23,12 +24,12 @@ export const getAllComercantwithClient= async(req,res)=>{
 //obtenir les information de commercant et son Commande 
 export const getAllComercantwithCommande= async(req,res)=>{
     try {
-        const id=req.body.Id
+        const id=req.params.id
         const Allcom=await prisma.commercant.findUnique({
             where:{
-                Id:Number(id)
+                id:Number(id)
             },
-            include:{client:true},
+            include:{commande:true},
         })
         res.json(Allcom)
         
@@ -195,18 +196,170 @@ export const Commercant_Update=async(req,res)=>{
 }
 //Add Commande 
 export const AddCommande=async(req,res)=>{
-    const {code,qte_prod,lat,long,ComId,Idproduit,CliId}=req.body;
+    let MyDate;
+    MyDate=moment().format('YYYY-MM-DD');
+    const {code,qte_prod,ComId,Idproduit,CliId,lat,long,id}=req.body;
     try {
-        const Commande="insert into commande (code,qte_prod,lat,long,ComId,Idproduit,CliId)values(?,?,?,?,?,?,?)"
-        db.query(Commande,[code,qte_prod,lat,long,ComId,Idproduit,CliId],(err,Commande)=>{
-          if(Commande){
-            res.status(201).send({"Commande ajouter avec Suscces": Commande})
-        }else{
-            res.status(400).send({"msg":"Ooops"+err})
+      const Command=await prisma.commande.create({
+        data:{
+            code:code,
+            qte_prod:qte_prod,
+            ComId:ComId,
+            Idproduit:Idproduit,
+            CliId:CliId,
+            Date_cmd:MyDate,
+            lat:lat,
+            long:long,
+            id:id
         }
+      })
+      if(Command){
+        res.status(201).send({"Commande A ete Ajouter ":Command})
+      }else{
+        res.status(400).json("il y a Un Error")
+      }
+    } catch (error) {
+        res.status(500).send({"msg":"il ya Un Error "+error})
+    }
+}
+//Delete Commande where not en_route
+export const DeleteCommande=async(req,res)=>{
+    const code=req.body.code;
+    try {
+        const commande="DELETE FROM commande WHERE code =?";
+        db.query(commande,code,(err,reslt)=>{
+            if(reslt){
+                res.status(200).json({"msg":"Commande a eté Supprimer"})
+            }else{
+                res.status(400).json({"msg":err})
+            }
+        })
+        
+    } catch (error) {
+       res.status(500).json({"msg":"Ooops"+error}) 
+    }
+}
+//Get All Category 
+export const GetAllCategory=async(req,res)=>{
+    try {
+        const Category=await prisma.category.findMany({})
+        if(Category){
+            res.status(200).json({Category})
+        }else{
+            res.status(400).json({"msg":"Ooops Bad request ... "})
+        }
+    } catch (error) {
+        res.status(500).json({"msg":"Ooops"+error}) 
+    }
+}
+//Get Product By Id 
+export const GetAllProduct=async(req,res)=>{
+    const idcategory=req.body.idcategory;
+    try {
+        const produit=await prisma.produit.findMany({
+            where:{
+                idcategory:idcategory
+            }
+        })
+        if(produit){
+            res.status(200).json({produit})
+        }else{
+            res.status(400).json({"msg":"Ooops Bad Request .. "})
+        }
+    } catch (error) {
+        res.status(500).json({"msg":"Ooops"+error})
+    }
+}
+//Add Client 
+export const addClient =async(req,res)=>{
+    const {nom,prenom,phone,idCom}=req.body;
+   const client= "INSERT INTO `client`(`nom`, `prenom`, `phone`, `idCom`) VALUES(?,?,?,?)";
+    try {
+       db.query(client,[nom,prenom,phone,idCom],(err, result) => {
+        if(result) {
+            res.status(201).json({"msg": "Client Added successfully"})
+        }else{
+            res.status(400).json({"msg": "Faild to Add client failed"});
+        }
+       }); 
+    } catch (error) {
+        res.json({"msg":"errrors"+error})
+    }
+}
+//Get Commande par code 
+export const GetCommandeByCode=async(req,res)=>{
+    const code=req.body.code;
+    try {
+        const commande= "select * from commande where code=?"
+        db.query(commande,code,(err,reslt)=>{
+            if(reslt){
+                res.status(200).json({reslt})
+            }else{
+                res.status(400).json({"msg":"Ooops Bad Request.. "})
+            }
         })
        
     } catch (error) {
-        res.status(500).send({"msg":error})
+        res.status(500).json({"msg":"Ooops"+error})
     }
+}
+
+//Update Commercant Image 
+
+export const updateImage=async(req,res)=>{
+    const {Nom,prenom,email,phone,mdp,image}=req.body;
+    const id=req.params.id;
+    try {
+        console.log(image)
+        if(image){
+            const UpoadResponse= await Cloudinary.uploader.upload(image,{
+                upload_preset:"productUpload"
+            })
+            if(UpoadResponse){
+                const imageProduct=UpoadResponse.secure_url;
+                const UpdateImage=await prisma.commercant.update({
+                    where:{
+                        id:Number(id)
+                    },
+                    data:{
+                     email:email,
+                     image:imageProduct,
+                     mdp:mdp,
+                     Nom:Nom,
+                     prenom:prenom,
+                     phone:phone  
+                    }
+                })
+                if(UpdateImage){
+                res.status(201).json("Commerçant details is Modified  ")
+                }else{
+                    request.status(400).json("Commerçant details is not Modified")
+                }
+            }
+           
+        }else{
+         res.status(400).json("image not Updated ")
+        }
+    } catch (error) {
+        res.status(500).json({"msg":"Ooops"+error})
+    }
+}
+
+//Get Commercant By id 
+export const getCommercantById =async(req,res)=>{
+const id = req.params.id;
+try {
+    const CommercantById = await prisma.commercant.findUnique({
+        where:{
+            id:Number(id)
+        }
+    })
+    if(CommercantById){
+        res.status(200).send({CommercantById})
+    }else{
+        res.status(404).send({"msg":"Commercant Not Found "})
+    }
+} catch (error) {
+    res.status(500).json({"msg":"Ooops"+error});
+}
 }

@@ -7,7 +7,7 @@ export const Client_sign_in=async(req,res)=>{
     const mdp=req.body.mdp;
     const email=req.body.email;
     try {
-    const  clientexiste= await prisma.client.findUnique({where:{email:email}})
+    const  clientexiste= await prisma.compteClient.findUnique({where:{email:email}})
             if(clientexiste){
             const isEqual=clientexiste.mdp===mdp;
             console.log(isEqual,mdp,clientexiste.mdp)
@@ -25,28 +25,34 @@ export const Client_sign_in=async(req,res)=>{
 }
 //client register
 export const Client_register=async(req,res)=>{
-    const {nom,prenom,email,mdp,phone,idCom}=req.body;
-   const inserClient="insert into client(nom,prenom,email,mdp,phone,idCom) value(?,?,?,?,?,?)";
-   /*const salt=bcrypt.genSaltSync(10);
-    const hach=bcrypt.hashSync(mdp,salt)*/
+    const {nom,prenom,email,mdp,CliId}=req.body;
     try {
-        const clientexiste=await prisma.client.count({where:{email:email}})
-        if(clientexiste>0){
-            res.status(401).send("client deja existe ")
-        }else{
-           db.query(inserClient,[nom,prenom,email,mdp,phone,idCom],(err,reselt)=>{
-            if(reselt){
-                return  res.status(200).json({"msg":"user registred "});
-              }else{
-                return  res.status(400).json({"msg":" fama haja moch hiya  "+err});
-              }
-           })
+       const isExiste=await prisma.client.count({
+        where:{
+            nom:nom,
+            prenom:prenom,
         }
+      
+       }) 
+       if(!isExiste) {
+        res.status(404).json({"message":"Client is not exist with this Nom essayer Avec votre Code   "})
+       }else{
+        const Client = await prisma.compteClient.create({
+            data:{
+                email: email,
+                mdp: mdp,
+            }
+        })
+        if(Client){
+        res.status(201).send({"msg":"Client created successfully"})
+       }else{
+        res.status(400).json({"msg":"Invalid Create Client"})
+       }
+    }
     } catch (error) {
         res.status(500).send({"msg":"oops "+ error})
     }
 }   
-
 //commercant login 
 export const commercant_login=async(req,res)=>{
     const email=req.body.email;
@@ -71,8 +77,8 @@ export const commercant_login=async(req,res)=>{
 }
 //comercant register 
 export const commercant_register=async(req,res)=>{
-    const {Nom,prenom,email,mdp,phone}=req.body;
-    const addcom ="insert into commercant(nom,prenom,email,mdp,phone) value(?,?,?,?,?)";
+    const {Nom,prenom,email,mdp,phone,Adress}=req.body;
+    const addcom ="insert into commercant(nom,prenom,email,mdp,phone,Adress) value(?,?,?,?,?,?)";
    /* const salt=bcrypt.genSaltSync(10);
     const hach=bcrypt.hashSync(mdp,salt)*/
     try {
@@ -80,7 +86,7 @@ export const commercant_register=async(req,res)=>{
     if(clientexiste>0){
         res.status(401).send("commercant deja existe ")
     }else{
-     db.query(addcom,[Nom,prenom,email,mdp,phone],(err,reslt)=>{
+     db.query(addcom,[Nom,prenom,email,mdp,phone,Adress],(err,reslt)=>{
         if(reslt){
             res.status(200).send({"msg":"commercant added with sucsses "})
            }else{
@@ -93,7 +99,6 @@ export const commercant_register=async(req,res)=>{
     }
     
 }
-
 //Admin login 
 export const Admin_login=async(req,res)=>{
     const email=req.body.UserName;
@@ -142,7 +147,6 @@ export const Admin_Rest=async(req,res)=>{
         res.status(500).send({"msg":"fama haja moch hiya "+error})
     }   
 }
-
 //livreur login 
 export const Livreur_login=async(req,res)=>{
     const email=req.body.email;
@@ -167,16 +171,14 @@ export const Livreur_login=async(req,res)=>{
 }
 //livreur register 
 export const Livreur_register=async(req,res)=>{
-    const {nom,prenom,email,mdp,phone}=req.body;
-    const addcom ="insert into livreur(nom,prenom,email,phone,mdp) value(?,?,?,?,?)"
-    const salt=bcrypt.genSaltSync(10);
-    const hach=bcrypt.hashSync(mdp,salt)
+    const {email,mdp,phone,adress,nomliv,prenomliv}=req.body;
+    const addcom ="insert into livreur(email,phone,mdp,adress,nomliv,prenomliv) value(?,?,?,?,?,?)"
     try {
         const clientexiste=await prisma.livreur.count({where:{email:email}})
     if(clientexiste>0){
         res.status(401).send("livreur deja existe ")
     }else{
-     db.query(addcom,[nom,prenom,email,phone,hach],(err,reslt)=>{
+     db.query(addcom,[email,mdp,phone,adress,nomliv,prenomliv],(err,reslt)=>{
         if(reslt){
             res.status(200).send({"msg":"livreur added with sucsses "})
            }else{

@@ -38,7 +38,7 @@ export const UpdateState=async(req,res)=>{
         res.status(500).json({"msg":"Ooops "+error})
     }
 }
-//Update Commande's State
+//Update Commande's Livrer State
 export const UpdateCommandeState=async(req,res)=>{
     try{
         const Update_commande=await prisma.commande.update({
@@ -55,6 +55,26 @@ export const UpdateCommandeState=async(req,res)=>{
             res.status(404).send({"msg":"no Commande Found "})
         }
     }catch(error){
+        res.status(500).json({"msg":"Ooops"+error})
+    }
+}
+//Update Commande En_route State
+export const updateCommande=async(req,res) => {
+    try {
+        const Update_commande=await prisma.commande.update({
+            where:{
+                code:req.body.code
+            },
+            data:{
+                etat:"en_route"
+            }
+        })
+        if(Update_commande){
+            res.status(201).json(Update_commande)
+        }else{
+            res.status(404).send({"msg":"no Commande Found "})
+        }
+    } catch (error) {
         res.status(500).json({"msg":"Ooops"+error})
     }
 }

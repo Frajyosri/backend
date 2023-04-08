@@ -1,30 +1,18 @@
 import { PrismaClient } from "@prisma/client";
 const prisma=new PrismaClient();
 import {db} from "../db.configue.js"
-import multer from "multer";
 
-
-
-//Upload File 
-const mystorage=multer.diskStorage({
-    destination:"../Uploads",
-    filename:(req,file,redirect)=>{
-        let date= Date.now();
-        let f1=date+"."+file.mimetype.split("/")[1];
-        redirect(null,f1)
-        filename=f1;
-    }
-})
-const Upload=multer({storage:mystorage})
 
 
 
 //Get All Commande 
 export const GetAllCommande=async(req,res)=>{
     try {
-        const Commande=await prisma.client.findMany({
+        const Commande=await prisma.commande.findMany({
             include:{
-                commande:true
+                Client:true,
+                commercant:true,
+                livreur:true   
             }
         })
         if(Commande){
@@ -40,6 +28,9 @@ export const GetAllCommande=async(req,res)=>{
 export const GetAllComercant=async(req,res)=>{
     try {
         const Comercant=await prisma.commercant.findMany({
+            where:{
+                isActive:true
+            },
             include:{
                 commande:true
             }
@@ -53,27 +44,40 @@ export const GetAllComercant=async(req,res)=>{
         res.status(500).json({"msg":"Ooops ! "+error})
     }
 }
+//Get All Livreur 
+export const GetAllLivreur=async(req,res)=>{
+    try {
+        const livreur=await prisma.livreur.findMany({
+            include:{
+                _count:{
+                    select:{commande:true}
+                }
+            }
+        })
+        if(livreur){
+            res.json({livreur})
+        }else{
+            res.status(400).json({"msg":"bad request "})
+        }
+    } catch (error) {
+        res.status(500).json({"msg":"Eroor"+error})
+    }
+   
+}
 //Get the last Commande 
 export const GetlastCommande=async(req,res)=>{
     try{
-         const Commande=prisma.commande.findMany({
-       select:{
-        code:true,
-        Date_cmd:true,
-        etat:true,
-        ispayed:true,
-        Adress:true,
-        commercant:{
-            include:true
-        },
-        Client:{
-            include:true
-        }
-    },
-    take:5,
+         const Commande= await prisma.commande.findMany({
+            include:{
+                commercant:true,
+                Client:true
+            },
+            take:5
 })
     if(Commande){
         res.status(200).json(Commande)
+    }else{
+        res.status(404).json({"msg": "Not Found"})
     }
     }catch(error){
         res.status(500).send({"msg":error})
@@ -83,10 +87,10 @@ export const GetlastCommande=async(req,res)=>{
 //Get the last Commercant 
 export const GetlastCommercant=async(req,res)=>{
     try {
-     const Commande="SELECT * FROM `commercant` LIMIT ?"
-     db.query(Commande,5,(err,reslt)=>{
+     const Commande="SELECT * FROM `commercant` WHERE isActive=? LIMIT ? "
+     db.query(Commande,[true,5],(err,reslt)=>{
         if(reslt){
-            res.status(200).json(reslt)
+            res.status(200).json({reslt})
         }
      })
     } catch (error) {
@@ -97,20 +101,16 @@ export const GetlastCommercant=async(req,res)=>{
 //Get Statistique 
 export const GetStatique=async(req,res)=>{
     try {
-          const result = await prisma.user.groupBy({
-        by: ['code', 'Date_cmd'],
-        orderBy: {
-          Date_cmd: true
-        },
-        _count: {
-          _all: true
-        },
-      })
-      if(result){
-        res.status(200).json(result)
-      }
+        //const orders = await prisma.commande.findMany();
+       const stat=await prisma.commande.groupBy({
+        by:["Date_cmd"],
+        _count:{
+            _all:true,
+        }
+       })
+        res.json({stat})
     } catch (error) {
-        res.status(500).json(error)
+        res.status(500).json({"msg":"Ooops"+error})
     }
   
       
@@ -125,7 +125,7 @@ export const SearchProduct=async(req,res)=>{
       where: {
            nom: { contains: q } 
        
-      },
+      }
     });
     res.json({Product});
     } catch (error) {
@@ -136,22 +136,18 @@ export const SearchProduct=async(req,res)=>{
 }
 //search Commercant 
 export const SearchCommercant=async(req,res)=>{
-    const q=req.query.email;
+    const  {q}  = req.query;
     
    try {
-    const Commercant=prisma.commercant.findMany({
+    const Commercant=await prisma.commercant.findMany({
         where:{
-            email:{
-                contains:q
-            }
+            email:{contains:q }
+        },
+        include:{
+            commande:true
         }
     })
-    if((await Commercant).length>0){
-        res.status(200).send({"le commercant trouver est:": await Commercant})
-    }else{
-        res.status(404).send({"msg":"Commercant Not Found "})
-    }
-    
+    res.json({Commercant})
    } catch (error) {
     res.status(500).send({"msg":error})
    }
@@ -159,34 +155,33 @@ export const SearchCommercant=async(req,res)=>{
 }
 // add to historique 
 export const AddTohistorique=async(req,res)=>{
-    const {montant,ComId}=req.body;
+    const montant=req.body.montant;
+    const id=req.params.id
     try {
-        const payer=await prisma.commercant.update({
-           where:{
-            Id:ComId
-           },
-            data:{
-              Paye:true ,
-              montant_actuelle:0 
-            },  
-        })
-        if(payer){
-               const AddHistorique= await prisma.historique.create({
-        data:{
-            montant:montant,
-            ComId:ComId
-            }
+        const AddTohistorique = "insert into historique (montant,ComId) values (?,?)"
+        try {
+            db.query(AddTohistorique,[montant,id],async(err, result)=>{
+                if(result){
+                    const payer= await prisma.commercant.update({
+                        where:{
+                          id:Number(id) 
+                        },
+                         data:{
+                           Paye:true ,
+                           montant_actuelle:0 
+                         },  
+                     })
+                     if(payer){
+                        res.json({"msg":"updated with success"})
+                     }
+                }else{
+                    res.status(404).json({"msg":err.message});
+                }
+            })
+        } catch (error) {
+            res.status(500).json({"msg":"fama haja "+error})
         }
-    )
-    if ( AddHistorique) {
-        res.status(200).send({"msg":"Historique Added with Sucsses"})
-    }else{
-        res.status(400).send({"msg":"oooppps"})
-    }
-        }else{
-            res.status(400).send({"msg":"oooppps"})
-        }
-     
+       
     } catch (error) {
         res.status(500).json({"msg":"fama haja "+error})
     }
@@ -194,18 +189,18 @@ export const AddTohistorique=async(req,res)=>{
 }
 // Get Commercant's Historique By Id
 export const CommercantHistorique=async(req,res)=>{
-    const Id=req.params.Id;
+    const id=req.params.id;
     try {
         const ComHist=await prisma.commercant.findUnique({
             include:{
                 historique:true
             },
             where:{
-                Id:Number( Id)
+               id:Number(id)
             }
         })
         if(ComHist){
-            res.status(200).json(ComHist)
+            res.status(200).json([ComHist])
         }else{
             res.status(404).send("No historique ")
         }
@@ -215,45 +210,34 @@ export const CommercantHistorique=async(req,res)=>{
 }
 //ajouter un Livreur et Modifier l'etat de Commande 
 export const Update_commande=async(req,res)=>{
-    const code=req.body.code;
+    const id=req.params.id;
     const idliv=req.body.idliv;
+    console.log(idliv);
     try {
         const Update_com=await prisma.commande.update({
             where:{
-                code:code
+                id:Number(id)
             },
             data:{
                 idliv:idliv
             }
         })
-        if(Update_com){
-            const Etat=await prisma.commande.update({
-                where:{
-                    code:code
-                },
-                data:{
-                    etat:"en_route"
-                }
-            })
-            if(Etat){
-                res.status(200).json(Etat)
+            if(Update_com){
+                res.status(200).json({"msg":"Livreur Ajouter "})
             }else{
-                res.status(400).json({"msg":"ooops etat ne pas modifier  ! "})
+                res.status(400).json({"msg":"ooops livreur ne pas ajouter  ! "})
             }
-        }else{
-            res.status(400).json({"msg":"ooops livreur ne pas ajouter  ! "})
-        }
     } catch (error) {
       res.status(500).json({"msg":"ooops !! "+error})  
     }
 }
 //Reset l'etat de Commercant 
 export const Commercant_Reset=async(req,res)=>{
-    const Id=req.body.Id;
+    const id=req.params.id;
     try {
          const Update_com=await prisma.commercant.update({
         where:{
-            Id:Number(Id)
+           id:Number(id)
         },
         data:{
             montant_actuelle:0.0,
@@ -273,10 +257,14 @@ export const Commercant_Reset=async(req,res)=>{
 }
 //Delete Commercant 
 export const Delete_com=async(req,res)=>{
+    const id=req.params.id
     try {
-        const Comercant=await prisma.commercant.delete({
+        const Comercant=await prisma.commercant.update({
             where:{
-                Id:req.body.Id
+               id:Number(id)
+            },
+            data:{
+                isActive:false
             }
         })
         if(Comercant){
@@ -307,12 +295,31 @@ export const AddObjective=async(req,res)=>{
     }
 
 }
+//Delete Objective 
+export const DeleteObjective=async(req,res)=>{
+    const id = req.params.id
+    try {
+        const Objective=await prisma.objectif.delete({
+            where:{
+                id:parseInt(id)
+            }
+        })
+        if(Objective){
+            res.status(200).json({"msg":"Objective a ete Suprimer "})
+        }else{
+            res.status(404).json({"msg":"Oops !! il ya un probléme"})
+        }
+        
+    } catch (error) {
+        res.status(500).json({"msg":"error"+error})
+    }
+}
 //Consulter les Objective 
 export const Allobjective=async(req,res)=>{
     try {
         const Objective=await prisma.objectif.findMany({})
         if(Objective){
-            res.status(200).json(Objective);
+            res.status(200).json({Objective});
         }else{
             res.status(404).json({"msg":"Aucune Objective trouvé "})
         }
@@ -329,7 +336,7 @@ export const Reclamation =async(req,res)=>{
             }
         })
         if(Reclamation){
-            res.status(200).json(Reclamation)
+            res.status(200).json({Reclamation})
         }else{
             res.status(400).json({"msg":"Oops"})
         }
@@ -337,44 +344,52 @@ export const Reclamation =async(req,res)=>{
         res.status(500).json({"msg":"Oops"+error})
     }
 }
-//Get Commercant By id 
-export const GetComercantById=async(req,res)=>{
-    const Id=req.body.Id;
-    try {
-        const Com=await prisma.commercant.findUnique({
-            where:{
-                Id:Id 
-            }
-        })
-        if(Com){
-            res.status(200).json(Com)
-        }else{
-            res.status(404).json({"msg":"Commercant Not Found "})
-        }
-    } catch (error) {
-        res.status(500).json({"msg":"Ooops !"+error})
-    }
-}
 //Get Facture By id 
 export const GetFactureById=async(req,res)=>{
-   const code_cmd=req.body.code_cmd;
+   const id=req.params.id;
     try {
+        
        const Facture=await prisma.commande.findUnique({
         where:{
-            code:code_cmd
+            id:Number(id)
         },
         include:{
-            facture:true
+           Client:true,
+           commercant:true,
+           facture:true,
+           livreur:true,
         }
        }) 
        if(Facture){
-        res.status(200).json(Facture)
+        res.status(200).json({Facture})
        }else{
         res.status(404).send({"msg":"Facture not Found "})
        }
     } catch (error) {
         res.status(500).send({"msg":"Oops"+error})
     }
+}
+//Get Card Item By Id 
+export const getCardItem=async(req,res)=>{
+    const id=req.params.id;
+    try {
+        const Card =await prisma.Card.findUnique({
+            where:{
+                id:Number(id)
+            },
+            include:{
+                cardItem:true
+            }
+        })
+        if(Card){
+            res.status(200).json({Card})
+        }else{
+            res.status(404).json({"msg": "Card not found"})
+        }
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+    
 }
 //Delete Product
 export const DeleteProduct=async(req,res)=>{
@@ -409,7 +424,6 @@ export const  GetAllProduct=async(req,res)=>{
      res.status(500).json({"msg":error})   
     }
 }
-
 //Get category By Id 
 export const GetCategoryById=async(req,res)=>{
     const id=req.params.id;
@@ -460,6 +474,7 @@ export const GetProductById=async(req,res)=>{
         res.status(500).json({"msg":"Ooops ! "+error})
     }
 }
+//Update Produit 
 export const UpdateProduit =async(req,res)=>{
     const id=req.params.id;
     const {nom,description,prix,color,pht,pat,remise}=req.body;
@@ -487,4 +502,137 @@ export const UpdateProduit =async(req,res)=>{
     } catch (error) {
         res.status(500).json({"msg":"Ooops ! "+error})
     }
+}
+//Delete Livreur 
+export const DeleteLivreur=async(req,res)=>{
+    const id=req.params.id;
+    try {
+        const livreur=await prisma.livreur.delete({
+            where:{
+                id:Number(id)
+            }
+        })
+        if(livreur){
+            res.status(200).json({"msg":"Livreur a ete Suprimer "})
+        }else{
+            res.status(400).json({"msg":"Ooops Bad Request ... "})
+        }
+    } catch (error) {
+        res.status(500).json({"msg":"Error"+error})
+    }
+}
+//Add Category 
+export const AddCategory=async(req,res)=>{
+    const category=req.body.category;
+    try {
+        const Category=await prisma.category.create({
+            data:{
+                category:category
+            }
+        })
+        if(Category){
+            res.status(201).json({Category})
+        }else{
+            res.status(400).json({"msg":"Ooops Bad Request ... "})
+        }
+    } catch (error) {
+        res.status(500).json({"msg":"Error"+error})
+    }
+}
+//Search livreur 
+export const SearchLivreur=async(req,res)=>{
+    const  {q}  = req.query;
+    
+   try {
+    const Commercant=await prisma.livreur.findMany({
+        where:{
+            nomliv:{contains:q }
+        },
+        include:{
+            _count:{
+                select:{
+                    commande:true
+                }
+            }
+        }
+    })
+    if(Commercant){
+         res.json({Commercant})
+    }else{
+        res.status(404).json({"msg":"Livreur Not Found "})
+    }
+   
+   } catch (error) {
+    res.status(500).send({"msg":error})
+   }
+   
+}
+//Get Count of Commercant 
+export const CountOfCommercant =async(req,res) => {
+    try {
+        const TotalCommercant =await prisma.commercant.count({})
+        res.json(TotalCommercant)
+    } catch (error) {
+       res.status(500).json({"message":"Ooops !! "+error })
+    }
+}
+//Get Count Of Commande 
+export const CountOfCommande =async(req,res) => {
+    try {
+        const TotalCommande =await prisma.commande.count({})
+        res.json(TotalCommande)
+    } catch (error) {
+        res.status(500).json({"message":"Ooops !! "+error })  
+    }
+}
+//Get the somme de commande
+export const Somme=async(req,res) => {
+    try {
+        const Somme=await prisma.facture.aggregate({
+            _sum:{
+                montant:true
+            }
+        })
+        res.json([Somme]);
+    } catch (error) {
+        res.status(500).json({"message":"Ooops !! "+error })  
+    }
+}
+//Get dispo livreur
+export const GetAllLivreurByDespo=async(req,res) => {
+        try {
+            const livreur=await prisma.livreur.findMany({
+                where:{
+                    isdispo:true
+                },
+                include:{
+                    _count:{
+                        select:{commande:true}
+                    }
+                }
+            })
+            if(livreur){
+                res.json({livreur})
+            }else{
+                res.status(400).json({"msg":"bad request "})
+            }
+        } catch (error) {
+            res.status(500).json({"msg":"Eroor"+error})
+        }
+}
+//Get Deffirence Between Month 
+export const getDeffirenceOfMonth =async(req,res)=>{
+    const Date_cmd=new Date();
+    try {
+        const orders1 = await prisma.commande.count({
+            where:{
+                Date_cmd:Date_cmd
+            }
+        });
+       res.json(orders1);
+    } catch (error) {
+        res.status(500).json({"msg":"Something went wrong ! "+error})
+    }
+    
+
 }
