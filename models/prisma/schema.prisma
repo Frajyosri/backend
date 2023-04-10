@@ -56,6 +56,7 @@ model Com_objective{
    ComId Int @unique
   commercant commercant @relation(fields: [ComId],references: [id])
   Score Int 
+  isAchived Boolean
   @@id([Idobj,ComId])
 }
 

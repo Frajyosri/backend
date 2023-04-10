@@ -1,8 +1,6 @@
 import  express from "express";
 const router=express.Router()
-import {getAllComercantwithCommande,
-       getAllComercantwithClient,
-       getAllComercantwithScore,
+import {
        getAllComercantwithhistorique,
        getclient_Commande,
        ObjectiveById,
@@ -22,13 +20,11 @@ import {getAllComercantwithCommande,
 } from "../Controler/Commercant.controller.js";
 
 //get the client of commercant
-router.get("/commercant/client",getAllComercantwithClient)
 //get the commande of commercant
-router.get("/commercant/commande/:id",getAllComercantwithCommande)
-//get the historique of commercant
-router.get("/commercant/historique",getAllComercantwithhistorique)
 //get the score of commercant 
-router.get("/commercant/score",getAllComercantwithScore)
+//get the historique of commercant
+router.get("/commercant",getAllComercantwithhistorique)
+
 //get the commande of client by id 
 router.get("/client/commande",getclient_Commande)
 //get the objective By id 

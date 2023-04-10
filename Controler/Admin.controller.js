@@ -636,3 +636,103 @@ export const getDeffirenceOfMonth =async(req,res)=>{
     
 
 }
+//Get Count Client 
+export const getCountClient =async(req,res)=>{
+    try {
+        const ClientCount =await prisma.client.count({})
+        res.json(ClientCount)
+    } catch (error) {
+        res.status(500).json({"msg":"Something went wrong ! "+error})
+    }
+}
+//Client who Gets Compts 
+export const getCompts =async(req,res)=>{
+    try {
+        const ClientComptsCount =await prisma.compteClient.count({})
+        res.json(ClientComptsCount)
+    } catch (error) {
+        res.status(500).json({"msg":"Something went wrong ! "+error})
+    }
+}
+//Get Commande Payed 
+export const getCommandePayed=async(req,res)=>{
+    try {
+        const CommandePayed=await prisma.commande.count({
+            where:{
+                ispayed:true
+            }
+        })
+        res.json(CommandePayed);
+    } catch (error) {
+        res.status(500).json({"msg":"Something went wrong ! "+error})
+    }
+}
+//Get Commande Not payed
+export const getCommandNotPayed=async(req,res)=>{
+    try {
+        const CommandeNPayed=await prisma.commande.count({
+            where:{
+                ispayed:false
+            }
+        })
+        res.json(CommandeNPayed);
+    } catch (error) {
+        res.status(500).json({"msg":"Something went wrong ! "+error})
+    }
+}
+
+//Get Count Commande  of each Commercant 
+export const getCountCommandeOfComercant=async(req,res)=>{
+    try {
+        const count = await prisma.commercant.findMany({
+            include:{
+                _count:{
+                    select:{commande:true}
+                }
+            }
+        })
+        res.json(count)
+    } catch (error) {
+        res.status(500).json({"msg":"Something went wrong ! "+error})
+    }
+}
+
+//Get les Commandes Livré 
+export const getCommandLivre=async(req,res)=>{
+    try {
+        const count = await prisma.commande.count({
+            where:{
+                etat:"livré",
+            }
+        })
+        res.json(count)
+    } catch (error) {
+        res.status(500).json({"msg":"Something went wrong ! "+error})
+    }
+}
+//Get les Commandes Non Livré 
+export const getCommandeNotLivre=async(req,res)=>{
+    try {
+        const count = await prisma.commande.count({
+            where:{
+                etat:"Confirmer"
+            }
+        })
+        res.json(count)
+    } catch (error) {
+        res.status(500).json({"msg":"Something went wrong ! "+error})
+    }
+}
+//Get les Commandes en Routes 
+export const getCommandeRoute=async(req,res)=>{
+    try {
+        const count = await prisma.commande.count({
+            where:{
+                etat:"En_route"
+            }
+        })
+        res.json(count)
+    } catch (error) {
+        res.status(500).json({"msg":"Something went wrong ! "+error})
+    }
+}

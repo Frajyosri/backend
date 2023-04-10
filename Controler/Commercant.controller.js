@@ -5,63 +5,21 @@ import  moment from "moment";
 import Cloudinary from "../Cloudinary.js";
 
 
-//obtenir les information de commercant et son client 
-export const getAllComercantwithClient= async(req,res)=>{
+
+//obtenir les information de commercant et son historique 
+export const getAllComercantwithhistorique= async(req,res)=>{
     try {
-        const id=req.body.Id
-        const Allcom=await prisma.commercant.findUnique({
-            where:{
-                Id:Number(id)
-            },
-            include:{client:true},
-        })
-        res.json(Allcom)
-        
-    } catch (error) {
-        res.status(500).send({"msg":"somthing wreng" + error})
-    }
-}
-//obtenir les information de commercant et son Commande 
-export const getAllComercantwithCommande= async(req,res)=>{
-    try {
-        const id=req.params.id
+        const id=req.body.id
         const Allcom=await prisma.commercant.findUnique({
             where:{
                 id:Number(id)
             },
-            include:{commande:true},
-        })
-        res.json(Allcom)
-        
-    } catch (error) {
-        res.status(500).send({"msg":"somthing wreng" + error})
-    }
-}
-//obtenir les information de commercant et son historique 
-export const getAllComercantwithhistorique= async(req,res)=>{
-    try {
-        const id=req.body.Id
-        const Allcom=await prisma.commercant.findUnique({
-            where:{
-                Id:Number(id)
+            include:{
+                historique:true,
+                client:true,
+                commande:true,
+                score:true
             },
-            include:{client:true},
-        })
-        res.json(Allcom)
-        
-    } catch (error) {
-        res.status(500).send({"msg":"somthing wreng" + error})
-    }
-}
-//obtenir les information de commercant et son Score 
-export const getAllComercantwithScore= async(req,res)=>{
-    try {
-        const id=req.body.Id
-        const Allcom=await prisma.commercant.findUnique({
-            where:{
-                Id:Number(id)
-            },
-            include:{client:true},
         })
         res.json(Allcom)
         
@@ -88,7 +46,9 @@ export const ObjectiveById=async(req,res)=>{
     const id=req.params.id
     try {
         const objectif=await prisma.objectif.findUnique({
-            where:{Id:Number(id)},
+            where:{
+                id:Number(id)
+            },
         })
         res.json(objectif)
      
@@ -286,6 +246,7 @@ export const addClient =async(req,res)=>{
         res.json({"msg":"errrors"+error})
     }
 }
+
 //Get Commande par code 
 export const GetCommandeByCode=async(req,res)=>{
     const code=req.body.code;
@@ -305,7 +266,6 @@ export const GetCommandeByCode=async(req,res)=>{
 }
 
 //Update Commercant Image 
-
 export const updateImage=async(req,res)=>{
     const {Nom,prenom,email,phone,mdp,image}=req.body;
     const id=req.params.id;
@@ -344,7 +304,6 @@ export const updateImage=async(req,res)=>{
         res.status(500).json({"msg":"Ooops"+error})
     }
 }
-
 //Get Commercant By id 
 export const getCommercantById =async(req,res)=>{
 const id = req.params.id;
