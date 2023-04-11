@@ -3,7 +3,7 @@ const router=express.Router()
 import {
        getAllComercantwithhistorique,
        getclient_Commande,
-       ObjectiveById,
+       AllObjective,
        AddFacture,
        GetAllFacture,
        GetFactureById,
@@ -14,9 +14,12 @@ import {
        GetAllCategory,
        GetAllProduct,
        addClient,
-       GetCommandeByCode,
        updateImage,
-       getCommercantById
+       getCommercantById,
+       getCardInfo,
+       AddCardItem,
+       addCard,
+       deleteCardItem
 } from "../Controler/Commercant.controller.js";
 
 //get the client of commercant
@@ -24,11 +27,10 @@ import {
 //get the score of commercant 
 //get the historique of commercant
 router.get("/commercant",getAllComercantwithhistorique)
-
 //get the commande of client by id 
 router.get("/client/commande",getclient_Commande)
-//get the objective By id 
-router.get("/commercant/objective/:id",ObjectiveById)
+//get All  objective 
+router.get("/commercant/Allobjective",AllObjective)
 //Get All facture 
 router.get("/facture",GetAllFacture)
 //Get Facture By Id 
@@ -49,12 +51,17 @@ router.get("/category",GetAllCategory)
 router.get("/produit",GetAllProduct)
 //Add Client 
 router.get("/client",addClient)
-//Get Commande By Code 
-router.get("/commandeByCode",GetCommandeByCode)
+
 //Commercant Image Update
 router.put("/commercant/:id",updateImage)
 //Get Commercant By id 
-
 router.get("/commercant/details/:id",getCommercantById)
-
+//Add Card 
+router.post("/commercant/card",addCard)
+//Add Card Item to card 
+router.post("/commercant/cardItem",AddCardItem)
+//Get Card information 
+router.get("/cardInfo/:id",getCardInfo)
+//Delete Card Intem from Card 
+router.delete("/cardItem/:id",deleteCardItem)
 export default router;

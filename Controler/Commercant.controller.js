@@ -41,14 +41,14 @@ export const getclient_Commande=async(req,res)=>{
         res.status(500).send({"msg":"somthing wreng" + error})
     }
 }
-//obtenir les informtion d'objective par id 
-export const ObjectiveById=async(req,res)=>{
+//obtenir tous les informtion d'objective 
+export const AllObjective=async(req,res)=>{
     const id=req.params.id
     try {
-        const objectif=await prisma.objectif.findUnique({
-            where:{
-                id:Number(id)
-            },
+        const objectif=await prisma.objectif.findMany({
+            include:{
+                score:true
+            }
         })
         res.json(objectif)
      
@@ -130,11 +130,11 @@ export const SearchProduct=async(req,res)=>{
 }
 //Update Comercant profile 
 export const Commercant_Update=async(req,res)=>{
-    const Id=req.body.Id;
+    const id=req.body.id;
     try {
          const Update_com=await prisma.commercant.update({
         where:{
-            Id:Number(Id)
+            id:Number(id)
         },
         data:{
             email:req.body.email,
@@ -246,25 +246,6 @@ export const addClient =async(req,res)=>{
         res.json({"msg":"errrors"+error})
     }
 }
-
-//Get Commande par code 
-export const GetCommandeByCode=async(req,res)=>{
-    const code=req.body.code;
-    try {
-        const commande= "select * from commande where code=?"
-        db.query(commande,code,(err,reslt)=>{
-            if(reslt){
-                res.status(200).json({reslt})
-            }else{
-                res.status(400).json({"msg":"Ooops Bad Request.. "})
-            }
-        })
-       
-    } catch (error) {
-        res.status(500).json({"msg":"Ooops"+error})
-    }
-}
-
 //Update Commercant Image 
 export const updateImage=async(req,res)=>{
     const {Nom,prenom,email,phone,mdp,image}=req.body;
@@ -321,4 +302,75 @@ try {
 } catch (error) {
     res.status(500).json({"msg":"Ooops"+error});
 }
+}
+//Add Card 
+export const addCard =async(req, res) => {
+    const id=req.body.id
+     try {
+        const card = await prisma.card.create({
+            data:{
+                id:id
+            }
+        })
+        if(card){
+            res.status(201).json({card})
+        }else{
+            res.status(400).json({"msg":"Bad Request"})
+        }
+     } catch (error) {
+        res.status(500).json({"msg":"Ooops"+error});
+     }
+}
+//Add Card item to Card 
+export const AddCardItem = async(req, res) => {
+    const {idproduit,qte_produit,Prix,idcard}=req.body;
+    const CardItem="insert into CardItem (idproduit,qte_produit,Prix,idcard) values(?,?,?,?)";
+    try {
+        console.log(Prix,idproduit,qte_produit,idcard)
+       db.query(CardItem,[idproduit,qte_produit,Prix,idcard],(reselt,err)=>{
+        if(reselt){
+            res.status(201).json(reselt)
+        }else{
+            res.status(400).json({"msg":"Invalide " + err.message})
+        } 
+       })     
+    } catch (error) {
+        res.status(500).json({"msg":"Bad request"+error})
+    }
+}
+//Get Card information
+export const getCardInfo =async(req, res) => {
+    const id = req.params.id;
+    try {
+        const CardInfo=await prisma.card.findUnique({
+            where:{
+                id:Number(id)
+            },
+            include:{
+                cardItem:true
+            }
+        })
+        res.json({CardInfo})
+    } catch (error) {
+        res.status(500).json({"msg":"Bad request"+error})
+    }
+}
+//delete CardItem from Card 
+
+export const deleteCardItem=async(req,res)=>{
+    const id=req.params.id;
+    try {
+        const CardItem = await prisma.cardItem.delete({
+            where:{
+                id:Number(id)
+            }
+        })
+        if(CardItem) {
+            res.status(200).json({"msg":"success"})
+        }else{
+            res.status(404).json({"msg":"Canot Find this Card Item"})
+        }
+    } catch (error) {
+       res.status(500).json({"msg":"Bad request"+error}) 
+    }
 }
