@@ -32,7 +32,6 @@ export const Client_register=async(req,res)=>{
             nom:nom,
             prenom:prenom,
         }
-      
        }) 
        if(!isExiste) {
         res.status(404).json({"message":"Client is not exist with this Nom essayer Avec votre Code   "})
@@ -41,6 +40,7 @@ export const Client_register=async(req,res)=>{
             data:{
                 email: email,
                 mdp: mdp,
+                CliId: CliId,
             }
         })
         if(Client){
@@ -61,7 +61,6 @@ export const commercant_login=async(req,res)=>{
         const   emailExiste= await prisma.commercant.findUnique({where:{email:email}})
         if(emailExiste){
             const isEqual=emailExiste.mdp===mdp
-            console.log(isEqual,mdp,emailExiste.mdp)
             if(isEqual){
                 res.status(200).send({"msg":"welcome there  "})
             }else{
@@ -150,21 +149,21 @@ export const Admin_Rest=async(req,res)=>{
 //livreur login 
 export const Livreur_login=async(req,res)=>{
     const email=req.body.email;
-    const lpassword=req.body.mdp;
+    const mdp=req.body.mdp;
     try {
     const  emailexiste= await prisma.livreur.findUnique({where:{email:email}})
-            if(emailexiste){
-                const Passexiste=await prisma.livreur.findUnique({where:{mdp:lpassword}})
-                const isEqual=bcrypt.compareSync(clientexiste.Password,Passexiste.Password);
-                console.log(isEqual,Passexiste.Password,clientexiste.Password)
-                if(isEqual){
-                    res.status(200).send({"msg":"welcome there  "})
-                }else{
-                    res.status(400).send({"msg":"invalide mail or password"})
-                }
-            }else{
-                res.status(400).send({"msg":"no clint found "})
-            }
+    if(emailexiste){
+        const isEqual=emailexiste.mdp===mdp
+        if(isEqual){
+            res.status(200).send({"msg":"welcome there  "})
+        }else{
+            res.status(400).send({"msg":"invalide mail or password"})
+        }
+        
+    }else{
+        res.status(400).send({"msg":"no clint found "})
+    }
+        
     } catch (error) {
          res.status(500).send({"msg":"somthing wreng" + error})
     }

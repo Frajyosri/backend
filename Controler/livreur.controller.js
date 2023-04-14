@@ -4,7 +4,10 @@ const prisma=new PrismaClient();
 //Get All Commande 
 export const GetAllCommande=async(req,res)=>{
     try {
-        const Commande= await prisma.livreur.findMany({
+        const Commande= await prisma.livreur.findUnique({
+            where:{
+                id: Number(req.params.id)
+            },
             include:{
                 commande:true
             }
@@ -23,7 +26,7 @@ export const UpdateState=async(req,res)=>{
     try {
        const State=await prisma.livreur.update({
         where:{
-            id:req.body.id
+            id:Number(req.params.id)
         },
         data:{
             isdispo:req.body.isdispo
@@ -43,7 +46,7 @@ export const UpdateCommandeState=async(req,res)=>{
     try{
         const Update_commande=await prisma.commande.update({
             where:{
-                code:req.body.code
+                id:Number(req.params.id)
             },
             data:{
                 etat:"livrer"
@@ -63,7 +66,7 @@ export const updateCommande=async(req,res) => {
     try {
         const Update_commande=await prisma.commande.update({
             where:{
-                code:req.body.code
+                id:Number(req.params.id)
             },
             data:{
                 etat:"en_route"
@@ -78,47 +81,19 @@ export const updateCommande=async(req,res) => {
         res.status(500).json({"msg":"Ooops"+error})
     }
 }
-//Get All Facture 
-export const GetAllFacture=async(req,res)=>{
-    try {
-        const Facture=await prisma.facture.findMany();
-        if(Facture){
-            res.status(200).json(  Facture)
-            
-        }else{
-            res.status(400).send({"msg":"fama Ghalta"})
-        }
-    } catch (error) {
-       res.status(500).send({"msg":"fama Ghalta"+error}) 
-    }
-}
-//Get Facture Details 
-export const GetFactureById=async(req,res)=>{
-    try {
-        const Id=req.params.id ;
-        const FacturById=prisma.facture.findUnique({
-            where:{
-                id: Number(Id) 
-            }
-        })
-        if (await FacturById.length>0) {
-            res.status(200).json(await FacturById)
-        }else{
-            res.status(200).json({"msg":"Aucune Facture "})
-        }
-    } catch (error) {
-        res.status(500).json({"msg":"Ooops !"+error})
-    }
-}
+
 //Get Commande By Commande 
 export const GetCommandeById=async(req,res)=>{
     try {
         const CommandeById=await prisma.commande.findUnique({
             where:{
-                code:req.body.code
+                id: Number (req.params.id)
             },
             include:{
-                produit:true
+                Client:true,
+                facture:true,
+                commercant:true,
+                Card:true,
             }
         })
         if (CommandeById) {
@@ -128,6 +103,29 @@ export const GetCommandeById=async(req,res)=>{
         }
         
     } catch (error) {
-        res.status(500).json({"Ooops":error})
+        res.status(500).json({"Ooops":"il ya Un Erreur "+error})
     }
+}
+
+//Get Card Item By Id 
+export const getCardItem=async(req,res)=>{
+    const id=req.params.id;
+    try {
+        const Card =await prisma.Card.findUnique({
+            where:{
+                id:Number(id)
+            },
+            include:{
+                cardItem:true
+            }
+        })
+        if(Card){
+            res.status(200).json({Card})
+        }else{
+            res.status(404).json({"msg": "Card not found"})
+        }
+    } catch (error) {
+        res.status(500).json({error:error.message})
+    }
+    
 }
