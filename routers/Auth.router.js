@@ -11,19 +11,7 @@ import{Client_sign_in,
 }
     from "../Controler/Auth.controller.js ";
 
-import multer from "multer";
 
-let filename="";
-const myStorage=multer.diskStorage({
-    destination:"./Uploads",
-    filename(req,file,redirect){
-     let date=Date.now();
-     let f1=date+"."+ file.mimetype.split("/")[1];
-     redirect(null,f1)
-     filename=f1;
-    }
-    })
-const Upload=multer({storage:myStorage})
 
 
 //client sign in 

@@ -31,7 +31,6 @@ import {GetlastCommande,
          CountOfCommande,
          CountOfCommercant,
          Somme,
-         getDeffirenceOfMonth,
          GetAllLivreurByDespo,
          getCardItem,
          getCompts,
@@ -41,7 +40,8 @@ import {GetlastCommande,
          getCountCommandeOfComercant,
          getCommandLivre,
          getCommandeRoute,
-         getCommandeNotLivre
+         getCommandeNotLivre,
+         clientCommande
          
 } from "../Controler/Admin.controller.js";
 import { PrismaClient } from "@prisma/client";
@@ -151,8 +151,6 @@ router.get("/admin/Countcommercant",CountOfCommercant)
 router.get("/admin/CountCommande",CountOfCommande)
 //Get Somme of commande
 router.get("/admin/somme",Somme)
-//Get Difference 
-router.get("/admin/diff",getDeffirenceOfMonth)
 //Get livreur By Dispo 
 router.get("/admin/livreurBydispo",GetAllLivreurByDespo)
 //Get CardItem 
@@ -173,4 +171,5 @@ router.get("/admin/CommandeLivre",getCommandLivre)
 router.get("/admin/CommandeEnRout",getCommandeRoute)
 //Get Count les Command not livrer
 router.get("/admin/CommandeC",getCommandeNotLivre)
+router.get("/admin/ClientCommande",clientCommande)
 export default router;

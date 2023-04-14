@@ -78,7 +78,7 @@ export const commercant_login=async(req,res)=>{
 //comercant register 
 export const commercant_register=async(req,res)=>{
     const {Nom,prenom,email,mdp,phone,Adress}=req.body;
-    const addcom ="insert into commercant(nom,prenom,email,mdp,phone,Adress) value(?,?,?,?,?,?)";
+    const addcom ="insert into commercant(Nom,prenom,email,mdp,phone,Adress) value(?,?,?,?,?,?)";
    /* const salt=bcrypt.genSaltSync(10);
     const hach=bcrypt.hashSync(mdp,salt)*/
     try {

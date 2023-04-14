@@ -491,6 +491,7 @@ export const UpdateProduit =async(req,res)=>{
                 pht:pht,
                 pat:pat,
                 remise:remise
+
             }
         })
         if(UpdateProd){
@@ -620,22 +621,6 @@ export const GetAllLivreurByDespo=async(req,res) => {
             res.status(500).json({"msg":"Eroor"+error})
         }
 }
-//Get Deffirence Between Month 
-export const getDeffirenceOfMonth =async(req,res)=>{
-    const Date_cmd=new Date();
-    try {
-        const orders1 = await prisma.commande.count({
-            where:{
-                Date_cmd:Date_cmd
-            }
-        });
-       res.json(orders1);
-    } catch (error) {
-        res.status(500).json({"msg":"Something went wrong ! "+error})
-    }
-    
-
-}
 //Get Count Client 
 export const getCountClient =async(req,res)=>{
     try {
@@ -680,7 +665,6 @@ export const getCommandNotPayed=async(req,res)=>{
         res.status(500).json({"msg":"Something went wrong ! "+error})
     }
 }
-
 //Get Count Commande  of each Commercant 
 export const getCountCommandeOfComercant=async(req,res)=>{
     try {
@@ -696,7 +680,6 @@ export const getCountCommandeOfComercant=async(req,res)=>{
         res.status(500).json({"msg":"Something went wrong ! "+error})
     }
 }
-
 //Get les Commandes Livré 
 export const getCommandLivre=async(req,res)=>{
     try {
@@ -732,6 +715,20 @@ export const getCommandeRoute=async(req,res)=>{
             }
         })
         res.json(count)
+    } catch (error) {
+        res.status(500).json({"msg":"Something went wrong ! "+error})
+    }
+}
+//Client Commande 
+export const clientCommande =async(req,res)=>{
+    try {
+       const client =await prisma.client.findMany({
+        include:{
+          commande:true  
+        }
+       }
+       ) 
+       res.json(client)
     } catch (error) {
         res.status(500).json({"msg":"Something went wrong ! "+error})
     }
