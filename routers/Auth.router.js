@@ -22,7 +22,6 @@ router.put("/admin/reset",Admin_Rest)
 router.post("/comercant/login",commercant_login)
 router.post("/comercant/register",commercant_register)
 router.post("/livreur/login",Livreur_login)
-
 //livreur register 
 router.post("/livreur/register",Livreur_register)
 

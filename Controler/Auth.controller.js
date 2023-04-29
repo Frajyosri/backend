@@ -12,7 +12,7 @@ export const Client_sign_in=async(req,res)=>{
             const isEqual=clientexiste.mdp===mdp;
             console.log(isEqual,mdp,clientexiste.mdp)
             if(isEqual){
-                res.status(200).send({"msg":"welcome there  "})
+                res.json(clientexiste.id);
             }else{
                 res.status(400).send({"msg":"invalide mail or password"})
             }
@@ -29,8 +29,8 @@ export const Client_register=async(req,res)=>{
     try {
        const isExiste=await prisma.client.count({
         where:{
-            nom:nom,
-            prenom:prenom,
+            nomCli:nom,
+            prenomCli:prenom,
         }
        }) 
        if(!isExiste) {
@@ -62,7 +62,7 @@ export const commercant_login=async(req,res)=>{
         if(emailExiste){
             const isEqual=emailExiste.mdp===mdp
             if(isEqual){
-                res.status(200).send({"msg":"welcome there  "})
+               res.json(emailExiste.id);
             }else{
                 res.status(400).send({"msg":"invalide mail or password"})
             }
@@ -76,16 +76,14 @@ export const commercant_login=async(req,res)=>{
 }
 //comercant register 
 export const commercant_register=async(req,res)=>{
-    const {Nom,prenom,email,mdp,phone,Adress}=req.body;
-    const addcom ="insert into commercant(Nom,prenom,email,mdp,phone,Adress) value(?,?,?,?,?,?)";
-   /* const salt=bcrypt.genSaltSync(10);
-    const hach=bcrypt.hashSync(mdp,salt)*/
+    const {NomCom,prenomCom,email,mdp,phoneCom,Adress}=req.body;
+    const addcom ="insert into commercant(NomCom,prenomCom,email,mdp,phoneCom,Adress) value(?,?,?,?,?,?)";
     try {
         const clientexiste=await prisma.commercant.count({where:{email:email}})
     if(clientexiste>0){
         res.status(401).send("commercant deja existe ")
     }else{
-     db.query(addcom,[Nom,prenom,email,mdp,phone,Adress],(err,reslt)=>{
+     db.query(addcom,[NomCom,prenomCom,email,mdp,phoneCom,Adress],(err,reslt)=>{
         if(reslt){
             res.status(200).send({"msg":"commercant added with sucsses "})
            }else{
@@ -124,8 +122,6 @@ export const Admin_login=async(req,res)=>{
 export const Admin_Rest=async(req,res)=>{
     const newpassword=req.body.Password;
     const username=req.body.UserName;
-    /*const salt=bcrypt.genSaltSync(10);
-    const hach=bcrypt.hashSync(newpassword,salt)*/
     try {
      
         const Admin=await prisma.admin.update({
@@ -155,7 +151,7 @@ export const Livreur_login=async(req,res)=>{
     if(emailexiste){
         const isEqual=emailexiste.mdp===mdp
         if(isEqual){
-            res.status(200).send({"msg":"welcome there  "})
+            res.status(200).json(emailexiste.id);
         }else{
             res.status(400).send({"msg":"invalide mail or password"})
         }
@@ -170,14 +166,14 @@ export const Livreur_login=async(req,res)=>{
 }
 //livreur register 
 export const Livreur_register=async(req,res)=>{
-    const {email,mdp,phone,adress,nomliv,prenomliv}=req.body;
-    const addcom ="insert into livreur(email,phone,mdp,adress,nomliv,prenomliv) value(?,?,?,?,?,?)"
+    const {email,mdp,phoneliv,adress,nomliv,prenomliv}=req.body;
+    const addcom ="insert into livreur(email,mdp,adress,nomliv,prenomliv,phoneliv) value(?,?,?,?,?,?)"
     try {
         const clientexiste=await prisma.livreur.count({where:{email:email}})
     if(clientexiste>0){
         res.status(401).send("livreur deja existe ")
     }else{
-     db.query(addcom,[email,mdp,phone,adress,nomliv,prenomliv],(err,reslt)=>{
+     db.query(addcom,[email,mdp,adress,nomliv,prenomliv,phoneliv],(err,reslt)=>{
         if(reslt){
             res.status(200).send({"msg":"livreur added with sucsses "})
            }else{

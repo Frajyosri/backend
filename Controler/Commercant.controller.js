@@ -77,7 +77,7 @@ export const GetAllFacture=async(req,res)=>{
     try {
         const Facture=await prisma.facture.findMany();
         if(Facture){
-            res.status(200).json(  Facture)
+            res.status(200).json( Facture)
             
         }else{
             res.status(400).send({"msg":"fama Ghalta"})
@@ -112,7 +112,7 @@ export const SearchProduct=async(req,res)=>{
    try {
     const Product=prisma.produit.findMany({
         where:{
-            nom:{
+            nom_Produit:{
                 contains:q
             }
         }
@@ -131,7 +131,7 @@ export const SearchProduct=async(req,res)=>{
 //Update Comercant profile 
 export const Commercant_Update=async(req,res)=>{
     const id=req.params.id;
-    const {email,phone,benificier,montant_actuelle,mdp}=req.body;
+    const {email,phoneCom,benificier,montant_actuelle,mdp}=req.body;
     try {
        
       const Update_com=await prisma.commercant.update({
@@ -143,7 +143,7 @@ export const Commercant_Update=async(req,res)=>{
            email:email,
            mdp:mdp,
            montant_actuelle:montant_actuelle,
-           phone:phone 
+           phoneCom:phoneCom 
         }
       })
       if(Update_com){
@@ -182,10 +182,10 @@ export const AddCommande=async(req,res)=>{
 }
 //Delete Commande where not en_route
 export const DeleteCommande=async(req,res)=>{
-    const code=req.body.code;
+    const id=req.body.id;
     try {
         const commande="DELETE FROM commande WHERE code =?";
-        db.query(commande,code,(err,reslt)=>{
+        db.query(commande,id,(err,reslt)=>{
             if(reslt){
                 res.status(200).json({"msg":"Commande a eté Supprimer"})
             }else{
@@ -230,10 +230,10 @@ export const GetAllProduct=async(req,res)=>{
 }
 //Add Client 
 export const addClient =async(req,res)=>{
-    const {id,nom,prenom,phone,idCom}=req.body;
-   const client= "INSERT INTO `client`(`id`,`nom`, `prenom`, `phone`, `idCom`) VALUES(?,?,?,?,?)";
+    const {id,nomCli,prenomCli,phoneCli,idCom}=req.body;
+   const client= "INSERT INTO `client`(`id`,`nomCli`, `prenomCli`, `phoneCli`, `idCom`) VALUES(?,?,?,?,?)";
     try {
-       db.query(client,[id,nom,prenom,phone,idCom],(err, result) => {
+       db.query(client,[id,nomCli,prenomCli,phoneCli,idCom],(err, result) => {
         if(result) {
             res.status(201).json({"msg": "Client Added successfully"})
         }else{
@@ -246,7 +246,7 @@ export const addClient =async(req,res)=>{
 }
 //Update Commercant Image 
 export const updateImage=async(req,res)=>{
-    const {Nom,prenom,email,phone,mdp,image}=req.body;
+    const {email,phoneCom,mdp,image}=req.body;
     const id=req.params.id;
     try {
         console.log(image)
@@ -264,9 +264,7 @@ export const updateImage=async(req,res)=>{
                      email:email,
                      image:imageProduct,
                      mdp:mdp,
-                     Nom:Nom,
-                     prenom:prenom,
-                     phone:phone  
+                     phoneCom:phoneCom  
                     }
                 })
                 if(UpdateImage){
@@ -287,37 +285,20 @@ export const updateImage=async(req,res)=>{
 export const addCard =async(req, res) => {
     const id=req.body.id
      try {
-        const card = await prisma.card.create({
-            data:{
-                id:id
-            }
-        })
+       const card="insert into Card values(?)"
+       db.query(card,id,(err, card) => {
         if(card){
-            res.status(201).json({card})
+            res.status(201).json({"msg":"Card inserted successfully"})
         }else{
-            res.status(400).json({"msg":"Bad Request"})
+            res.status(400).json({"msg":"Bad Request"+err})
         }
+       })
+        
      } catch (error) {
         res.status(500).json({"msg":"Ooops"+error});
      }
 }
 //Add Card item to Card 
-/*export const AddCardItem = async(req, res) => {
-    const {idproduit,qte_produit,Prix,idcard}=req.body;
-    const CardItem="insert into CardItem (idproduit,qte_produit,Prix,idcard) values(?,?,?,?)";
-    try {
-        console.log(Prix,idproduit,qte_produit,idcard)
-       db.query(CardItem,[idproduit,qte_produit,Prix,idcard],(reselt,err)=>{
-        if(reselt){
-            res.status(201).json(reselt)
-        }else{
-            res.status(400).json({"msg":"Invalide " + err})
-        } 
-       })     
-    } catch (error) {
-        res.status(500).json({"msg":"Bad request"+error})
-    }
-}*/
 export const AddCardItem=async(req,res)=>{
     const {idproduit,qte_produit,Prix,idcard}=req.body;
     const AddCardItem=await prisma.cardItem.create({

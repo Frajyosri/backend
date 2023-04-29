@@ -123,7 +123,7 @@ export const SearchProduct=async(req,res)=>{
     try {
      const Product = await prisma.produit.findMany({
       where: {
-           nom: { contains: q } 
+           nom_Produit: { contains: q } 
        
       }
     });
@@ -136,12 +136,13 @@ export const SearchProduct=async(req,res)=>{
 }
 //search Commercant 
 export const SearchCommercant=async(req,res)=>{
-    const  {q}  = req.query;
+    const  {q} = req.query;
     
    try {
     const Commercant=await prisma.commercant.findMany({
         where:{
-            email:{contains:q }
+            email:{contains:q },
+           NomCom :{contains:q },
         },
         include:{
             commande:true
@@ -216,7 +217,7 @@ export const Update_commande=async(req,res)=>{
     try {
         const Update_com=await prisma.commande.update({
             where:{
-                id:Number(id)
+                id:id
             },
             data:{
                 idliv:idliv
@@ -330,66 +331,35 @@ export const Allobjective=async(req,res)=>{
 //Condulter la reclamation de Client 
 export const Reclamation =async(req,res)=>{
     try {
-        const Reclamation=await prisma.client.findMany({
-            include:{
-              Rapport:true  
-            }
-        })
-        if(Reclamation){
-            res.status(200).json({Reclamation})
+       const Rapport = "SELECT nom,prenom,Content,Date_Rapport FROM rapport AS r,client AS c WHERE r.CliId=c.id;"
+       db.query(Rapport,(err,reselt)=>{
+        if(reselt){
+            res.json(reselt)
         }else{
-            res.status(400).json({"msg":"Oops"})
+            res.status(400).json({"msg":"Error"+err.message})
         }
+       })
     } catch (error) {
         res.status(500).json({"msg":"Oops"+error})
     }
 }
 //Get Facture By id 
 export const GetFactureById=async(req,res)=>{
-   const id=req.params.id;
+    const id = req.params.id
     try {
-        
-       const Facture=await prisma.commande.findUnique({
-        where:{
-            id:Number(id)
-        },
-        include:{
-           Client:true,
-           commercant:true,
-           facture:true,
-           livreur:true,
-        }
-       }) 
-       if(Facture){
-        res.status(200).json({Facture})
-       }else{
-        res.status(404).send({"msg":"Facture not Found "})
-       }
-    } catch (error) {
-        res.status(500).send({"msg":"Oops"+error})
-    }
-}
-//Get Card Item By Id 
-export const getCardItem=async(req,res)=>{
-    const id=req.params.id;
-    try {
-        const Card =await prisma.Card.findUnique({
-            where:{
-                id:Number(id)
-            },
-            include:{
-                cardItem:true
-            }
+        const CommandeById="SELECT code_cmd,idcategory,nomliv,prenomliv,remise,NomCom,prenomCom,nomCli,prenomCli,phoneCom,phoneCli,nom_Produit,prix_produit,qte_produit,Prix_card,etat ,montant,dateFact,code_cmd FROM commande AS cmd,client AS cl,commercant AS com,livreur AS l,produit AS p,carditem as ci,card AS c ,facture AS f WHERE cmd.idliv=l.id AND cmd.ComId=com.id AND cmd.CliId=cl.id AND cmd.id=f.code_cmd AND cmd.idCard=c.id AND c.id=ci.idCard and ci.idProduit=p.id and cmd.id=?";
+        db.query(CommandeById,id,(err,resltat)=>{
+            if (resltat) {
+                res.status(200).json(resltat) 
+             }else{
+                 res.status(404).json({"msg":"Commande Not Found "+err})
+             }
         })
-        if(Card){
-            res.status(200).json({Card})
-        }else{
-            res.status(404).json({"msg": "Card not found"})
-        }
+        
+        
     } catch (error) {
-        res.status(500).json({error:error.message})
+        res.status(500).json({"Ooops":"il ya Un Erreur "+error})
     }
-    
 }
 //Delete Product
 export const DeleteProduct=async(req,res)=>{
@@ -685,7 +655,7 @@ export const getCommandLivre=async(req,res)=>{
     try {
         const count = await prisma.commande.count({
             where:{
-                etat:"livré",
+                etat:"livrer",
             }
         })
         res.json(count)

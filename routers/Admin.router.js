@@ -32,7 +32,6 @@ import {GetlastCommande,
          CountOfCommercant,
          Somme,
          GetAllLivreurByDespo,
-         getCardItem,
          getCompts,
          getCountClient,
          getCommandePayed,
@@ -100,7 +99,7 @@ router.delete("/admin/objective/:id",DeleteObjective)
 router.get("/admin/facture/:id",GetFactureById)
 //add product 
 router.post("/admin/produit",multer({storage:mystorage}).single("image"),async(req,res)=>{
-        const {nom,description,prix,color,pht,image,pat,remise,idcategory}=req.body
+        const {nom_produit,description,prix_produit,color,pht,image,pat,remise,idcategory}=req.body
         try {
             console.log(image)
             if(image){
@@ -109,8 +108,8 @@ router.post("/admin/produit",multer({storage:mystorage}).single("image"),async(r
                 })
                 if(UpoadResponse){
                     const imageProduct=UpoadResponse.secure_url
-                    const Product="insert into produit (nom,description,prix,color,image,pht,pat,remise,idcategory)values (?,?,?,?,?,?,?,?,?)"
-                    db.query(Product,[nom,description,prix,color,imageProduct,pht,pat,remise,idcategory],(err,reslt)=>{
+                    const Product="insert into produit (description,color,image,pht,pat,remise,idcategory,nom_Produit,prix_produit)values (?,?,?,?,?,?,?,?,?)"
+                    db.query(Product,[description,color,imageProduct,pht,pat,remise,idcategory,nom_produit,prix_produit],(err,reslt)=>{
                      if(reslt){
                          res.status(201).json({"msg":"Produit a eté ajouter avec Sucsses "})
                      }else{
@@ -153,8 +152,6 @@ router.get("/admin/CountCommande",CountOfCommande)
 router.get("/admin/somme",Somme)
 //Get livreur By Dispo 
 router.get("/admin/livreurBydispo",GetAllLivreurByDespo)
-//Get CardItem 
-router.get("/admin/cardItem/:id",getCardItem)
 //Get Count Client 
 router.get("/admin/countClient",getCountClient)
 //Get Count Client Acount 
